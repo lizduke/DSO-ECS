@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: This AWS CloudFormation Template that configures the Container DevSecOps Demo Environment.
+
+Parameters:
+
+  EnvironmentName:
+    Type: String
+    Default: container-security-demo
+    Description: Prefix for resources
+
+  DevSecOpsResourcesBucket:
+    Type: String
+    Default: container-security-bucket
+    Description: Bucket to store required build resources
+
+  FailWhen:
+    Type: String
+    Default: High
+    AllowedValues:
+      - Low
+      - Medium
+      - High
+      - Critical
+    Description: Threshold to fail the pipeline if app image has vulnerabilities
+
+
+Resources:
+
+  AnchoreVpcStack:
+    Type: AWS::CloudFormation::Stack	
+    Properties:
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+
+      TemplateURL: https://s3.amazonaws.com/ecsdevsecopsdemo/anchore-vpc.yml
+
+  AnchoreStack:
+    DependsOn: AnchoreVpcStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+         ResourceName: !Ref EnvironmentName
+         DevSecOpsResources: !Ref DevSecOpsResourcesBucket
+
+      TemplateURL: https://s3.amazonaws.com/ecsdevsecopsdemo/anchore-fargate.yml
+
+  ECSClusterStack:
+    DependsOn: AnchoreStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ResourceName: !Ref EnvironmentName
+
+      TemplateURL: https://s3.amazonaws.com/ecsdevsecopsdemo/fargatecluster.yml
+
+  ECSServiceStack:
+    DependsOn: ECSClusterStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ResourceName: !Ref EnvironmentName
+
+      TemplateURL: https://s3.amazonaws.com/ecsdevsecopsdemo/fargateservice.yml
+
+  InitialPipeline:
+    DependsOn: ECSServiceStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        DevSecOpsResources: !Ref DevSecOpsResourcesBucket
+        ResourceName: !Ref EnvironmentName
+        FailWhen: !Ref FailWhen
+
+      TemplateURL: https://s3.amazonaws.com/ecsdevsecopsdemo/pipeline-setup.yml
+
+
+Outputs: {}
