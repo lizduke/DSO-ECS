@@ -7,7 +7,7 @@ Upload files in the environment directory directly to the new bucket.
 Create a folder in the bucket called devsecops and upload anchore-build.zip and initial-commit.zip to devsecops.
 Create a folder in the bucket called layers inside the devsecops folder and upload boto3.zip from the layers directory to that folder.
 
-Create a stack using the container-devsecops-demo.yml template and use the bucketname as the DevSecOpsResourcesBucket Parameter.
+Create a stack using the container-devsecops-demo.yml template and use the bucketname of the bucket you just created as the DevSecOpsResourcesBucket Parameter.
 
 Once everything has created then you will need to upload the app to the app repository created in codecommit.
 Clone the codecommit repository "container-security-demo-app" to your local machine or cloud9 depending on what you want to use.
